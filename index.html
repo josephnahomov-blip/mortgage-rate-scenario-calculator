@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canadian Mortgage Rate Scenario Calculator</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --accent: #3b82f6;
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #fbbf24;
+      --input-bg: #0d1117;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px 16px;
+      min-height: 100vh;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 800px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 22px;
+    }
+    .card h2 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .field {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    .field label {
+      font-size: 0.92rem;
+      color: var(--text);
+      flex: 1;
+    }
+    .field input, .field select {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      width: 160px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+    .field input.yellow {
+      background: #3d2e0a;
+      border-color: #92640a;
+      color: var(--yellow);
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-label { color: var(--muted); font-size: 0.9rem; }
+    .result-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .savings-positive {
+      color: var(--green);
+      background: rgba(16, 185, 129, 0.12);
+      padding: 2px 10px;
+      border-radius: 6px;
+    }
+    .savings-negative {
+      color: var(--red);
+      background: rgba(239, 68, 68, 0.12);
+      padding: 2px 10px;
+      border-radius: 6px;
+    }
+    .summary-box {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      border: 1px solid var(--border);
+    }
+    .summary-positive {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: #a7f3d0;
+    }
+    .summary-negative {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: #fecaca;
+    }
+    .hike-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+    .hike-table th {
+      text-align: left;
+      color: var(--muted);
+      font-weight: 500;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hike-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(45, 58, 79, 0.5);
+      font-variant-numeric: tabular-nums;
+    }
+    .note {
+      margin-top: 24px;
+      padding: 16px 18px;
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: 10px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .note strong { color: var(--text); }
+    button.calc {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      width: 100%;
+      transition: background 0.15s;
+    }
+    button.calc:hover { background: #2563eb; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Canadian Mortgage Rate Scenario Calculator</h1>
+    <p class="subtitle">Fixed vs Variable (with rate-hike path) • Semi-annual compounding • Accurate monthly schedule</p>
+
+    <div class="grid">
+      <!-- INPUTS -->
+      <div class="card">
+        <h2>Mortgage Details (edit yellow fields)</h2>
+
+        <div class="field">
+          <label>Mortgage amount ($)</label>
+          <input type="number" id="principal" class="yellow" value="500000" step="1000" min="1000">
+        </div>
+        <div class="field">
+          <label>Amortization (years)</label>
+          <input type="number" id="amortYears" class="yellow" value="25" step="1" min="1" max="40">
+        </div>
+        <div class="field">
+          <label>Comparison term (years)</label>
+          <input type="number" id="termYears" class="yellow" value="5" step="1" min="1" max="30">
+        </div>
+        <div class="field">
+          <label>Fixed mortgage rate</label>
+          <input type="number" id="fixedRate" class="yellow" value="0.0439" step="0.0001" min="0" max="0.2">
+        </div>
+        <div class="field">
+          <label>Variable starting rate</label>
+          <input type="number" id="varStartRate" class="yellow" value="0.0375" step="0.0001" min="0" max="0.2">
+        </div>
+        <div class="field">
+          <label>Each rate increase</label>
+          <input type="number" id="hikeSize" class="yellow" value="0.0025" step="0.0001" min="0" max="0.05">
+        </div>
+        <div class="field">
+          <label>Number of rate increases</label>
+          <input type="number" id="numHikes" class="yellow" value="4" step="1" min="0" max="25">
+        </div>
+        <div class="field">
+          <label>First increase after (months)</label>
+          <input type="number" id="firstHikeMonth" class="yellow" value="12" step="1" min="1" max="360">
+        </div>
+        <div class="field">
+          <label>Months between increases</label>
+          <input type="number" id="monthsBetween" class="yellow" value="12" step="1" min="1" max="60">
+        </div>
+        <div class="field">
+          <label>Variable payment method</label>
+          <select id="paymentMethod" class="yellow">
+            <option value="keep">Keep initial variable payment</option>
+            <option value="recalc">Recalculate payment after each hike</option>
+          </select>
+        </div>
+
+        <button class="calc" onclick="runCalc()">Calculate</button>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="card">
+        <h2>Bottom Line</h2>
+
+        <div class="result-row">
+          <span class="result-label">Fixed total interest</span>
+          <span class="result-value" id="fixedInterest">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Variable (no hikes) total interest</span>
+          <span class="result-value" id="varNoHikeInterest">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Variable (with hikes) total interest</span>
+          <span class="result-value" id="varHikeInterest">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Interest saved vs fixed</span>
+          <span class="result-value" id="savings">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Savings % vs fixed</span>
+          <span class="result-value" id="savingsPct">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Fixed ending balance</span>
+          <span class="result-value" id="fixedEndBal">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Variable no-hike ending balance</span>
+          <span class="result-value" id="varNoHikeEndBal">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Variable with-hikes ending balance</span>
+          <span class="result-value" id="varHikeEndBal">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Negative amortization shortfall</span>
+          <span class="result-value" id="shortfall">—</span>
+        </div>
+
+        <div id="summaryBox" class="summary-box hidden"></div>
+      </div>
+    </div>
+
+    <!-- HIKE TIMELINE -->
+    <div class="card" style="margin-bottom: 24px;">
+      <h2>Rate Hike Timeline</h2>
+      <table class="hike-table">
+        <thead>
+          <tr>
+            <th>Hike #</th>
+            <th>Effective Month</th>
+            <th>Effective Year</th>
+            <th>New Variable Rate</th>
+          </tr>
+        </thead>
+        <tbody id="hikeTimeline"></tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <strong>How this works</strong><br>
+      Canadian nominal rates are converted to equivalent monthly rates using semi-annual compounding:
+      monthly rate = (1 + annual/2)^(1/6) − 1.<br><br>
+      • <strong>Keep initial payment</strong> holds the original variable payment constant. If interest exceeds the payment, the shortfall is added to principal (negative amortization).<br>
+      • <strong>Recalculate payment</strong> resets the payment after each hike so the remaining balance amortizes over the remaining original amortization period.<br>
+      Only hikes that fall inside the comparison term affect the interest totals. This is an illustrative model — confirm exact payment rules with the lender.
+    </div>
+  </div>
+
+  <script>
+    // Canadian semi-annual compounding → equivalent monthly rate
+    function monthlyRate(annualNominal) {
+      return Math.pow(1 + annualNominal / 2, 1/6) - 1;
+    }
+
+    // Standard amortization payment
+    function payment(principal, annualRate, amortMonths) {
+      const r = monthlyRate(annualRate);
+      if (r === 0) return principal / amortMonths;
+      return principal * r / (1 - Math.pow(1 + r, -amortMonths));
+    }
+
+    function fmtCurrency(n) {
+      return new Intl.NumberFormat('en-CA', {
+        style: 'currency',
+        currency: 'CAD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(n);
+    }
+
+    function fmtPct(n) {
+      return (n * 100).toFixed(2) + '%';
+    }
+
+    function runCalc() {
+      const principal   = parseFloat(document.getElementById('principal').value) || 0;
+      const amortYears  = parseFloat(document.getElementById('amortYears').value) || 25;
+      const termYears   = parseFloat(document.getElementById('termYears').value) || 5;
+      const fixedRate   = parseFloat(document.getElementById('fixedRate').value) || 0;
+      const varStart    = parseFloat(document.getElementById('varStartRate').value) || 0;
+      const hikeSize    = parseFloat(document.getElementById('hikeSize').value) || 0;
+      const numHikes    = Math.min(25, Math.max(0, parseInt(document.getElementById('numHikes').value) || 0));
+      const firstHike   = parseInt(document.getElementById('firstHikeMonth').value) || 12;
+      const monthsBetween = Math.max(1, parseInt(document.getElementById('monthsBetween').value) || 12);
+      const method      = document.getElementById('paymentMethod').value; // 'keep' or 'recalc'
+
+      const amortMonths = Math.round(amortYears * 12);
+      const termMonths  = Math.round(termYears * 12);
+
+      // Initial payments
+      const fixedPmt   = payment(principal, fixedRate, amortMonths);
+      const varInitPmt = payment(principal, varStart, amortMonths);
+
+      // Build hike schedule: month → new annual rate
+      // Hike applies at the START of the effective month
+      const hikeMonths = [];
+      for (let h = 0; h < numHikes; h++) {
+        const m = firstHike + h * monthsBetween;
+        if (m <= termMonths) {
+          hikeMonths.push({ month: m, rate: varStart + (h + 1) * hikeSize });
+        }
+      }
+
+      // Render hike timeline
+      const tbody = document.getElementById('hikeTimeline');
+      tbody.innerHTML = '';
+      if (hikeMonths.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted)">No hikes within the comparison term</td></tr>';
+      } else {
+        hikeMonths.forEach((h, i) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${i + 1}</td>
+            <td>${h.month}</td>
+            <td>${Math.ceil(h.month / 12)}</td>
+            <td>${(h.rate * 100).toFixed(2)}%</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Helper: rate in effect for a given month (1-based)
+      function rateAtMonth(month) {
+        let r = varStart;
+        for (const h of hikeMonths) {
+          if (month >= h.month) r = h.rate;
+        }
+        return r;
+      }
+
+      // Run three schedules
+      let fixedBal = principal;
+      let varNoHikeBal = principal;
+      let varHikeBal = principal;
+
+      let fixedIntTot = 0;
+      let varNoHikeIntTot = 0;
+      let varHikeIntTot = 0;
+      let shortfallTot = 0;
+
+      for (let m = 1; m <= termMonths; m++) {
+        // --- Fixed ---
+        const fR = monthlyRate(fixedRate);
+        const fInt = fixedBal * fR;
+        const fPrin = Math.min(Math.max(0, fixedPmt - fInt), fixedBal);
+        fixedBal = Math.max(0, fixedBal - fPrin);
+        fixedIntTot += fInt;
+
+        // --- Variable no-hike ---
+        const v0R = monthlyRate(varStart);
+        const v0Int = varNoHikeBal * v0R;
+        const v0Prin = Math.min(Math.max(0, varInitPmt - v0Int), varNoHikeBal);
+        varNoHikeBal = Math.max(0, varNoHikeBal - v0Prin);
+        varNoHikeIntTot += v0Int;
+
+        // --- Variable with hikes ---
+        const currentAnnual = rateAtMonth(m);
+        const vR = monthlyRate(currentAnnual);
+        const vInt = varHikeBal * vR;
+
+        let vPmt;
+        if (method === 'recalc') {
+          const remainingAmort = Math.max(1, amortMonths - m + 1);
+          vPmt = payment(varHikeBal, currentAnnual, remainingAmort);
+        } else {
+          vPmt = varInitPmt;
+        }
+
+        let shortfall = 0;
+        let vPrin;
+        if (method === 'keep' && vInt > vPmt) {
+          shortfall = vInt - vPmt;
+          vPrin = 0;
+          varHikeBal = varHikeBal + shortfall; // negative amortization
+        } else {
+          vPrin = Math.min(Math.max(0, vPmt - vInt), varHikeBal);
+          varHikeBal = Math.max(0, varHikeBal - vPrin);
+        }
+        varHikeIntTot += vInt;
+        shortfallTot += shortfall;
+      }
+
+      // Results
+      const savings = fixedIntTot - varHikeIntTot;
+      const savingsPct = fixedIntTot > 0 ? savings / fixedIntTot : 0;
+
+      document.getElementById('fixedInterest').textContent = fmtCurrency(fixedIntTot);
+      document.getElementById('varNoHikeInterest').textContent = fmtCurrency(varNoHikeIntTot);
+      document.getElementById('varHikeInterest').textContent = fmtCurrency(varHikeIntTot);
+
+      const savEl = document.getElementById('savings');
+      savEl.textContent = fmtCurrency(Math.abs(savings));
+      savEl.className = 'result-value ' + (savings >= 0 ? 'savings-positive' : 'savings-negative');
+      if (savings < 0) {
+        savEl.textContent = '−' + fmtCurrency(Math.abs(savings));
+      }
+
+      const pctEl = document.getElementById('savingsPct');
+      pctEl.textContent = fmtPct(Math.abs(savingsPct));
+      pctEl.className = 'result-value ' + (savings >= 0 ? 'savings-positive' : 'savings-negative');
+      if (savings < 0) {
+        pctEl.textContent = '−' + fmtPct(Math.abs(savingsPct));
+      }
+
+      document.getElementById('fixedEndBal').textContent = fmtCurrency(fixedBal);
+      document.getElementById('varNoHikeEndBal').textContent = fmtCurrency(varNoHikeBal);
+      document.getElementById('varHikeEndBal').textContent = fmtCurrency(varHikeBal);
+      document.getElementById('shortfall').textContent = fmtCurrency(shortfallTot);
+
+      // Summary sentence
+      const box = document.getElementById('summaryBox');
+      box.classList.remove('hidden', 'summary-positive', 'summary-negative');
+      if (savings >= 0) {
+        box.classList.add('summary-positive');
+        box.innerHTML = `Under these assumptions, the <strong>variable-with-hikes</strong> scenario pays <strong>${fmtCurrency(savings)}</strong> less interest than the fixed scenario (${fmtPct(savingsPct)} of fixed interest).`;
+      } else {
+        box.classList.add('summary-negative');
+        box.innerHTML = `Under these assumptions, the <strong>variable-with-hikes</strong> scenario pays <strong>${fmtCurrency(Math.abs(savings))}</strong> <em>more</em> interest than the fixed scenario (${fmtPct(Math.abs(savingsPct))} of fixed interest).`;
+      }
+    }
+
+    // Auto-run on load and on input change
+    document.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('change', runCalc);
+      el.addEventListener('input', runCalc);
+    });
+    runCalc();
+  </script>
+</body>
+</html>
